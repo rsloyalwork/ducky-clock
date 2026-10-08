@@ -401,6 +401,8 @@ class Duck(QWidget):
             self.check_time()  # Update message based on new settings
                     
 app = QApplication(sys.argv)
+app.setStyle("Fusion")
+app.styleHints().setColorScheme(Qt.ColorScheme.Light)
 app.setQuitOnLastWindowClosed(False)
 duck = Duck()
 duck.move(200, 200) # Initial position
