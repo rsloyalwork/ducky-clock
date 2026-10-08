@@ -2,14 +2,18 @@ import os
 import signal
 import sys
 import json
+import urllib.request
+
+VERSION = "1.2"
+REPO = "RSLOYALWORK/ducky-clock"
 
 if sys.platform.startswith("linux"):
     os.environ["QT_QPA_PLATFORM"] = "xcb"  # Ensure X11 is used on Linux
 
-from PySide6.QtCore import Qt, QTimer, QRect, QTime, QPoint
-from PySide6.QtGui import QPainter, QColor, QPen, QPainterPath, QFont, QRegion, QPolygon, QIcon 
-from PySide6.QtWidgets import (
-    QApplication, QWidget, QMenu, QDialog, QFormLayout, QTimeEdit, QLineEdit, QSpinBox, QDialogButtonBox, QFrame, QVBoxLayout, QLabel,
+from PySide6.QtCore import Qt, QTimer, QRect, QTime, QPoint, Qurl
+from PySide6.QtGui import (QPainter, QColor, QPen, QPainterPath, QFont, QRegion, QPolygon, QIcon, QDesktopServices
+) 
+from PySide6.QtWidgets import (QApplication, QWidget, QMenu, QDialog, QFormLayout, QTimeEdit, QLineEdit, QSpinBox, QDialogButtonBox, QFrame, QVBoxLayout, QLabel,
 ) 
 from datetime import datetime, time, timedelta
 from pathlib import Path
@@ -30,6 +34,18 @@ DEFAULT_SETTINGS = {
     "break_message": "Break!",
     "lunch_message": "Lunch!",
 }
+
+def parse_version(text):
+    return tuple(int(part) for part in text.lstrip("v").split("."))
+
+def latest_release():
+    url = f"https://api.github/repos/{REPO}/release/latest"
+    try:
+        with urllib.request.urlopen(url, timeout=3) as response:
+            data = json.load(response)
+        return data["tag_name"], data["html_url"]
+    except Exception:
+        return None, None
 
 def load_settings():
     settings = DEFAULT_SETTINGS.copy()
@@ -237,6 +253,25 @@ class Duck(QWidget):
         self.clock = QTimer(self)
         self.clock.timeout.connect(self.check_time)
         self.clock.start(5000)  # Update every 5 seconds
+        
+        self.update_tag = None
+        self.Update_url = None
+        QTimer.singleShot(10000, self.check_for_update)
+        
+        self.update_timer = QTimer(self)
+        self.update_timer.timeout.connect(self.check_for_update)
+        self.update_timer.start(6*60*60*10000)
+        
+    def check_for_update(self):
+        tag, url = latest_release()
+        if tag is None:
+            return
+        try:
+            if parse_version(tag) > parse_version(VERSION):
+                self.update_tag = tag
+                self.update_url = url
+        except ValueError:
+            pass        
 
     def start_away(self, message, duration_minutes):
         self.away_message = message
@@ -356,9 +391,16 @@ class Duck(QWidget):
     def contextMenuEvent(self, event):
         menu = QMenu(self)
         make_cute(menu)
+        version_action = menu.addAction(f"Ducky Clock v{VERSION}")
+        version_action.setEnabled(False)
+        update_action = None
         break_action = None
         end_action = None
         lunch_action = {}
+        
+        if self.update_url is not None:
+                    update_action = menu.addAction(f"Update to {self.update_tag}!")
+                menu.addSeparator()
         
         if self.away_until is None:
             break_action = menu.addAction("Take A Break")
@@ -383,6 +425,9 @@ class Duck(QWidget):
         
         if chosen == break_action:
             self.start_away(self.settings["break_message"], self.settings["break_minutes"])
+        
+        elif chosen == update_action:
+            QDesktopServices.openUrl(QUrl(self.update_url))
         elif chosen in lunch_action:
             self.start_away(self.settings["lunch_message"], lunch_action[chosen])
         elif chosen == end_action:
