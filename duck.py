@@ -4,14 +4,14 @@ import sys
 import json
 import urllib.request
 
-VERSION = "1.2.4"
+VERSION = "1.3.0"
 REPO = "RSLOYALWORK/ducky-clock"
 
 if sys.platform.startswith("linux"):
     os.environ["QT_QPA_PLATFORM"] = "xcb"  # Ensure X11 is used on Linux
 
 from PySide6.QtCore import Qt, QTimer, QRect, QTime, QPoint, QUrl
-from PySide6.QtGui import (QPainter, QColor, QPen, QPainterPath, QFont, QRegion, QPolygon, QIcon, QDesktopServices
+from PySide6.QtGui import (QPainter, QColor, QPen, QPainterPath, QFont, QRegion, QPolygon, QIcon, QDesktopServices, QGuiApplication,
 ) 
 from PySide6.QtWidgets import (QApplication, QWidget, QMenu, QDialog, QFormLayout, QTimeEdit, QLineEdit, QSpinBox, QDialogButtonBox, QFrame, QVBoxLayout, QLabel,
 ) 
@@ -33,6 +33,8 @@ DEFAULT_SETTINGS = {
     "break_minutes": 15,
     "break_message": "Break!",
     "lunch_message": "Lunch!",
+    "x": None,
+    "y": None,
 }
 
 def parse_version(text):
@@ -78,7 +80,7 @@ def autostart_enabled():
     if sys.platform == "win32":
         import winreg
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                             r"Software\Microsoft\Windows\CurrentVersion\Run")
+                            r"Software\Microsoft\Windows\CurrentVersion\Run")
         try:
             winreg.QueryValueEx(key, APP_NAME)
             return True
@@ -267,6 +269,7 @@ class Duck(QWidget):
         self.timer.timeout.connect(self.next_frame)
         self.timer.start(120)  # Update every 120 ms for smooth animation
         self.settings = load_settings()
+        self.restore_position()
         self.message = ""
         self.away_message = None
         self.away_until = None
@@ -294,7 +297,17 @@ class Duck(QWidget):
                 self.update_tag = tag
                 self.update_url = url
         except ValueError:
-            pass        
+            pass  
+        
+    def restore_position(self):
+        x = self.settings.get("x")
+        y = self.settings.get("y")
+        if x is not None and y is not None:
+            center = QPoint(x + self.width() // 2, y + self.height() // 2)
+            if QGuiApplication.screenAt(center) is not None:
+                self.move(x, y)
+            return
+        self.move(200, 200)      
 
     def start_away(self, message, duration_minutes):
         self.away_message = message
@@ -409,6 +422,10 @@ class Duck(QWidget):
         if self.drag_offset is not None:
             self.move(event.globalPosition().toPoint() - self.drag_offset)
     def mouseReleaseEvent(self, event):
+        if self.drag_offset is not None:
+            self.settings["x"] = self.x()
+            self.settings["y"] = self.y()
+            save_settings(self.settings)
         self.drag_offset = None
         
     def contextMenuEvent(self, event):
@@ -464,7 +481,7 @@ class Duck(QWidget):
     def open_settings(self):
         dialog = SettingsDialog(self.settings, self)
         if dialog.exec():
-            self.settings = dialog.get_settings()
+            self.settings.update(dialog.get_settings())
             save_settings(self.settings)
             self.check_time()  # Update message based on new settings
                     
@@ -473,6 +490,5 @@ app.setStyle("Fusion")
 app.styleHints().setColorScheme(Qt.ColorScheme.Light)
 app.setQuitOnLastWindowClosed(False)
 duck = Duck()
-duck.move(200, 200) # Initial position
 duck.show()
 sys.exit(app.exec())       
