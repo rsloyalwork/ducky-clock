@@ -4,7 +4,7 @@ import sys
 import json
 import urllib.request
 
-VERSION = "1.2.3"
+VERSION = "1.2.4"
 REPO = "RSLOYALWORK/ducky-clock"
 
 if sys.platform.startswith("linux"):
@@ -39,12 +39,14 @@ def parse_version(text):
     return tuple(int(part) for part in text.lstrip("v").split("."))
 
 def latest_release():
-    url = f"https://api.github/repos/{REPO}/release/latest"
+    url = f"https://api.github.com/repos/{REPO}/releases/latest"
+    print("checking", url)
     try:
         with urllib.request.urlopen(url, timeout=3) as response:
             data = json.load(response)
         return data["tag_name"], data["html_url"]
-    except Exception:
+    except Exception as error:
+        print("update check failed:", error)
         return None, None
 
 def load_settings():
@@ -284,6 +286,7 @@ class Duck(QWidget):
         
     def check_for_update(self):
         tag, url = latest_release()
+        print("Update check got:", tag, url)
         if tag is None:
             return
         try:
