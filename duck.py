@@ -4,7 +4,7 @@ import sys
 import json
 import urllib.request
 
-VERSION = "1.2.1"
+VERSION = "1.2.3"
 REPO = "RSLOYALWORK/ducky-clock"
 
 if sys.platform.startswith("linux"):
@@ -90,8 +90,8 @@ def set_autostart(enabled):
     if sys.platform == "win32":
         import winreg
         key = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                             r"Software\Microsoft\Windows\CurrentVersion\Run",
-                             0, winreg.KEY_SET_VALUE)
+                            r"Software\Microsoft\Windows\CurrentVersion\Run",
+                            0, winreg.KEY_SET_VALUE)
         if enabled:
             winreg.SetValueEx(key, APP_NAME, 0, winreg.REG_SZ, launch_command())
         else:
@@ -100,7 +100,7 @@ def set_autostart(enabled):
             except FileNotFoundError:
                 pass
         winreg.CloseKey(key)
-    return
+        return
 
     if enabled:
         LINUX_AUTOSTART.parent.mkdir(parents=True, exist_ok=True)
@@ -130,6 +130,25 @@ QMenu::item {
 QMenu::item:selected {
     background-color: #FFA500;
     color: white;
+}
+QMenu::separator {
+    height: 2px;
+    background: #FFD27A;
+    margin: 4px, 10px;
+}
+QMenu::indicator {
+    width: 12px;
+    height: 12px;
+    margin-left: 8px;
+    border: 2px solid #FFA500;
+    border-radius: 7px;
+    background: #FFFAF0;
+}
+QMenu::indicator:checked {
+    background: #FFA500;
+}
+QMenu::item:disabled {
+    color: #B8A27A;
 }
 """
 
@@ -438,7 +457,7 @@ class Duck(QWidget):
         elif chosen == quit_action:
             QApplication.quit()
         elif chosen == startup_action:
-            autostart_enabled(startup_action.isChecked())
+            set_autostart(startup_action.isChecked())
     def open_settings(self):
         dialog = SettingsDialog(self.settings, self)
         if dialog.exec():
