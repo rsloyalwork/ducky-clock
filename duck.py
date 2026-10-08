@@ -4,7 +4,7 @@ import sys
 import json
 import urllib.request
 
-VERSION = "1.2"
+VERSION = "1.2.1"
 REPO = "RSLOYALWORK/ducky-clock"
 
 if sys.platform.startswith("linux"):
@@ -174,6 +174,7 @@ class SettingsDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Ducky Clock Settings")
         self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.Dialog | Qt.FramlessWindowHint | Qt.WindowStaysOnTopHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setStyleSheet(SETTINGS_STYLE)
         self.work_start = QTimeEdit(QTime.fromString(settings["work_start"], "HH:mm"))
