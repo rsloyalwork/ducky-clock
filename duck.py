@@ -399,7 +399,7 @@ class Duck(QWidget):
         lunch_action = {}
         
         if self.update_url is not None:
-                    update_action = menu.addAction(f"Update to {self.update_tag}!")
+                update_action = menu.addAction(f"Update to {self.update_tag}!")
                 menu.addSeparator()
         
         if self.away_until is None:
