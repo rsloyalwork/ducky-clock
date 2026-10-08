@@ -174,7 +174,7 @@ class SettingsDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Ducky Clock Settings")
         self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint)
-        self.setWindowFlags(Qt.Dialog | Qt.FramlessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(Qt.Dialog | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setStyleSheet(SETTINGS_STYLE)
         self.work_start = QTimeEdit(QTime.fromString(settings["work_start"], "HH:mm"))
