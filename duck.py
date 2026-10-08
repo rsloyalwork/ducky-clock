@@ -10,7 +10,7 @@ REPO = "RSLOYALWORK/ducky-clock"
 if sys.platform.startswith("linux"):
     os.environ["QT_QPA_PLATFORM"] = "xcb"  # Ensure X11 is used on Linux
 
-from PySide6.QtCore import Qt, QTimer, QRect, QTime, QPoint, Qurl
+from PySide6.QtCore import Qt, QTimer, QRect, QTime, QPoint, QUrl
 from PySide6.QtGui import (QPainter, QColor, QPen, QPainterPath, QFont, QRegion, QPolygon, QIcon, QDesktopServices
 ) 
 from PySide6.QtWidgets import (QApplication, QWidget, QMenu, QDialog, QFormLayout, QTimeEdit, QLineEdit, QSpinBox, QDialogButtonBox, QFrame, QVBoxLayout, QLabel,
@@ -255,7 +255,7 @@ class Duck(QWidget):
         self.clock.start(5000)  # Update every 5 seconds
         
         self.update_tag = None
-        self.Update_url = None
+        self.update_url = None
         QTimer.singleShot(10000, self.check_for_update)
         
         self.update_timer = QTimer(self)
